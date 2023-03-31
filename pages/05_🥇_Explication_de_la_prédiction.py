@@ -56,11 +56,27 @@ target_names = list(model.classes_)
 # 3:"tué"
 
 # Récupérez la prédiction et les données d'entrée à partir de st.session_state
+if "prediction" not in st.session_state:
+    st.session_state.prediction = None
+
+if "probabilities" not in st.session_state:
+    st.session_state.probabilities = None
+
+if "input_data" not in st.session_state:
+    st.session_state.input_data = None
+    
 prediction = st.session_state.prediction
 probabilities = st.session_state.probabilities
 input_data = st.session_state.input_data
-st.session_state.prob_df = pd.DataFrame(probabilities, columns=model.classes_)
-st.session_state.prob_df = st.session_state.prob_df[['indemne', 'blessé_léger', 'blessé_hospitalisé', 'tué']]
+
+# Vérifiez si les variables ont des valeurs valides
+if prediction is None or probabilities is None or input_data is None:
+    st.error("Les informations requises sont manquantes. Veuillez retourner à la page Modélisation pour les fournir.")
+    st.write("Cliquez sur 'Modélisation' dans la barre latérale pour retourner à la page précédente.")
+
+
+prob_df = pd.DataFrame(probabilities, columns=model.classes_)
+prob_df = prob_df[['indemne', 'blessé_léger', 'blessé_hospitalisé', 'tué']]
 
 prediction_value = prediction[0]
 index_prediction = target_names.index(prediction_value)
@@ -69,11 +85,11 @@ index_prediction = target_names.index(prediction_value)
 st.markdown("""
             ***Pour rappel, les modalités des caractéristiques de l'accident que vous avez sélectionnées ont comme résultats :***
             """)
-st.write(f"La prédiction de la gravité de l'accident est : **{st.session_state.prediction_text}**")
-st.write(f"**La probabilité que l'usager de la route appartienne à la classe {st.session_state.prediction_text} \
+st.write(f"La prédiction de la gravité de l'accident est : **{prediction.item()}**")
+st.write(f"**La probabilité que l'usager de la route appartienne à la classe {prediction.item()} \
          est de {probabilities.max():.1%}**.")
 st.write("Et, les probabilités pour chaque classe sont (en %) :")
-st.write((st.session_state.prob_df * 100).round(1))
+st.write((prob_df * 100).round(1))
 
 # Vérifiez si la prédiction et les données d'entrée sont disponibles
 if prediction is not None and input_data is not None:
