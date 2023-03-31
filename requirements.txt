@@ -1,0 +1,13 @@
+streamlit==1.18.1
+streamlit-pandas==0.0.9
+streamlit-shap==1.0.2
+scikit-learn==1.2.1
+catboost==1.1.1
+shap==0.41.0
+numpy==1.23.5 
+pandas==1.5.3
+pillow==9.4.0
+xplotter==0.0.6
+plotly==5.9.0 
+matplotlib==3.7.0
+seaborn==0.12.2
