@@ -60,6 +60,7 @@ prediction = st.session_state.prediction
 probabilities = st.session_state.probabilities
 input_data = st.session_state.input_data
 st.session_state.prob_df = pd.DataFrame(probabilities, columns=model.classes_)
+st.session_state.prob_df = st.session_state.prob_df[['indemne', 'blessé_léger', 'blessé_hospitalisé', 'tué']]
 
 prediction_value = prediction[0]
 index_prediction = target_names.index(prediction_value)

@@ -120,7 +120,7 @@ st.markdown("""
             catégorielles pour prédire la gravité des accidents de la route en France.**
             
             *Pour plus de précisions sur la méthodologie de sélection du "meilleur" modèle et le modèle CatBoost, 
-            vous pouvez lire le [rapport d'étude](https://github.com/DataScientest-Studio/Jan23_BDS_Accidents)*
+            vous pouvez lire le [rapport d'étude](https://github.com/IsabelleContant/gravite_accidents_de_la_route/tree/main/rapports)*
             """)
 image_path = os.path.join('assets', 'choix modèle multiclasses avec catboost.png')
 choix_model = Image.open(image_path)
