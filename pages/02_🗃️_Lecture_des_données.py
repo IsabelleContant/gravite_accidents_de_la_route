@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import streamlit_pandas as sp
+import os
 
 ############################
 # Configuration de la page #
@@ -35,7 +36,8 @@ st.markdown("""
 ########################
 @st.cache_data #mise en cache de la fonction pour exécution unique
 def load_data():
-    df = pd.read_csv("data\df_accidents.csv")
+    data_path = os.path.join('data', 'df_accidents.csv')
+    df = pd.read_csv(data_path)
     return df
 
 st.markdown("""

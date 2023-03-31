@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image
+import os
 
 st.set_page_config(
         page_title='Conclusion et Perspective',
@@ -26,7 +27,8 @@ st.markdown("""
             </style> """, 
             unsafe_allow_html=True)
 
-banniere = Image.open('assets\Bannière La gravité des accidents de la route.png')
+image_path = os.path.join('assets', 'Bannière La gravité des accidents de la route.png')
+banniere = Image.open(image_path)
 st.image(banniere, use_column_width="always")
 
 st.markdown("""
@@ -56,7 +58,8 @@ st.write("")
 st.write("***Pour information : Publication le 31 janvier des chiffres quasi-définitifs du bilan de la sécurité routière en 2022.***")
 st.write("[Bilan 2022 de la sécurité routière](https://www.onisr.securite-routiere.gouv.fr/etat-de-l-insecurite-routiere/bilans-annuels-de-la-securite-routiere/bilan-2022-de-la-securite-routiere)")
 st.write("")
-bilan_2022 = Image.open('assets\Bilan 2022 securite routiere.png')
+image_path = os.path.join('assets', 'Bilan 2022 securite routiere.png')
+bilan_2022 = Image.open(image_path)
 st.image(bilan_2022, use_column_width="always")
 
 # Centrage de l'image du logo dans la sidebar
@@ -64,7 +67,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    logo = Image.open('assets\logo-datascientest.png')
+    image_path = os.path.join('assets', 'logo-datascientest.png')
+    logo = Image.open(image_path)
     st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")

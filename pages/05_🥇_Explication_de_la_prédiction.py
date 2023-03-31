@@ -6,6 +6,7 @@ import shap
 from streamlit_shap import st_shap
 import pickle
 from PIL import Image
+import os
 
 ############################
 # Configuration de la page #
@@ -44,7 +45,8 @@ st.markdown("""
             unsafe_allow_html=True)
 
 # Chargement du modèle
-model = pickle.load(open("models\model_Catboost.pkl", "rb"))
+model_path = os.path.join('models', 'model_Catboost.pkl')
+model = pickle.load(open(model_path, "rb"))
 
 target_names = list(model.classes_)
 # Rappel des numéros des classes et de leur libellé
@@ -173,7 +175,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    logo = Image.open('assets\logo-datascientest.png')
+    image_path = os.path.join('assets', 'logo-datascientest.png')
+    logo = Image.open(image_path)
     st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")

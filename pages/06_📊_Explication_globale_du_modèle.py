@@ -5,6 +5,7 @@ import shap
 from streamlit_shap import st_shap
 import pickle
 from PIL import Image
+import os
 
 ############################
 # Configuration de la page #
@@ -38,7 +39,8 @@ st.markdown("""
 # Lecture des fichiers #
 ########################
 # Chargement du modèle
-model = pickle.load(open("models\model_Catboost.pkl", "rb"))
+model_path = os.path.join('models', 'model_Catboost.pkl')
+model = pickle.load(open(model_path, "rb"))
 target_names = list(model.classes_)
 # Rappel des numéros des classes et de leur libellé
 # 0:"blessé_hospitalisé"
@@ -47,11 +49,13 @@ target_names = list(model.classes_)
 # 3:"tué"
 
 # Chargement des valeurs Shap
-shap_values_all = pickle.load(open("models\shap_values_catboost.pkl", "rb"))
+shap_path = os.path.join('models', 'shap_values_catboost.pkl')
+shap_values_all = pickle.load(open(shap_path, "rb"))
 
 @st.cache_data #mise en cache de la fonction pour exécution unique
 def load_data():
-    df = pd.read_csv("data\X_test_catboost.csv")
+    data_path = os.path.join('data', 'X_test_catboost.csv')
+    df = pd.read_csv(data_path)
     return df
 
 X_test = load_data()
@@ -265,7 +269,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    logo = Image.open('assets\logo-datascientest.png')
+    image_path = os.path.join('assets', 'logo-datascientest.png')
+    logo = Image.open(image_path)
     st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")

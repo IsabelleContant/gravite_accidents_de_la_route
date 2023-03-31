@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image
+import os
 
 st.set_page_config(
         page_title='La gravité des accidents de la route en France',
@@ -26,7 +27,10 @@ st.markdown("""
             </style> """, 
             unsafe_allow_html=True)
 
-banniere = Image.open('assets\Bannière La gravité des accidents de la route.png')
+# tous les chargements (images, data et models) se font via os
+# pour éviter les conflits entre windows et linux
+image_path = os.path.join('assets', 'Bannière La gravité des accidents de la route.png')
+banniere = Image.open(image_path)
 st.image(banniere, use_column_width="always")
 
 # Titre et sous_titre du projet
@@ -82,7 +86,8 @@ st.markdown("""
             véhicules impliqués et leurs victimes.
             """)
 
-description_bdd = Image.open('assets\Description BDD Accidents Routiers.jpg')
+image_path = os.path.join('assets', 'Description BDD Accidents Routiers.jpg')
+description_bdd = Image.open(image_path)
 st.image(description_bdd, use_column_width="always")
 st.write("")
 
@@ -124,7 +129,8 @@ st.markdown("""
             avec les mêmes variables et les mêmes transformations.
 """
 )
-traitements_data = Image.open('assets\Traitements des données.jpg')
+image_path = os.path.join('assets', 'Traitements des données.jpg')
+traitements_data = Image.open(image_path)
 st.image(traitements_data, use_column_width="always")
 
 st.markdown("""Au total, notre base de données comprend 363 336 personnes accidentées de la route (numérotées de 0 à 363 335)
@@ -136,7 +142,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    logo = Image.open('assets\logo-datascientest.png')
+    image_path = os.path.join('assets', 'logo-datascientest.png')
+    logo = Image.open(image_path)
     st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")

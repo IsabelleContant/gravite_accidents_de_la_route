@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 from PIL import Image
 from xplotter.insights import *
+import os
 
 ############################
 # Configuration de la page #
@@ -42,7 +43,8 @@ st.markdown("""
 ########################
 @st.cache_data #mise en cache de la fonction pour exécution unique
 def load_data():
-    df = pd.read_csv("data\df_accidents.csv")
+    data_path = os.path.join('data', 'df_accidents.csv')
+    df = pd.read_csv(data_path)
     return df
 
 df_accidents = load_data()
@@ -294,7 +296,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    logo = Image.open('assets\logo-datascientest.png')
+    image_path = os.path.join('assets', 'logo-datascientest.png')
+    logo = Image.open(image_path)
     st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")

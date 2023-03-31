@@ -5,6 +5,7 @@ from xplotter.insights import *
 from PIL import Image
 import pickle
 from sklearn.model_selection import train_test_split
+import os
 
 ############################
 # Configuration de la page #
@@ -59,7 +60,8 @@ st.markdown("""
 ###################################
 @st.cache_data #mise en cache de la fonction pour exécution unique
 def load_data():
-    df = pd.read_csv("data\df_accidents.csv")
+    data_path = os.path.join('data', 'df_accidents.csv')
+    df = pd.read_csv(data_path)
     return df
 
 df_accidents = load_data()
@@ -120,7 +122,8 @@ st.markdown("""
             *Pour plus de précisions sur la méthodologie de sélection du "meilleur" modèle et le modèle CatBoost, 
             vous pouvez lire le [rapport d'étude](https://github.com/DataScientest-Studio/Jan23_BDS_Accidents)*
             """)
-choix_model = Image.open('assets\choix modèle multiclasses avec catboost.png')
+image_path = os.path.join('assets', 'choix modèle multiclasses avec catboost.png')
+choix_model = Image.open(image_path)
 st.image(choix_model, use_column_width="always")
 st.markdown("""
             Les résultats obtenus avec le modèle CatBoost optimisé avec Optuna s'interprètent ainsi :
@@ -159,7 +162,8 @@ st.markdown("""
 ########################
 # Chargement du modèle #
 ########################
-model = pickle.load(open("models\model_Catboost.pkl", "rb"))
+model_path = os.path.join('models', 'model_Catboost.pkl')
+model = pickle.load(open(model_path, "rb"))
 
 st.markdown("""
             <h1>
@@ -305,7 +309,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    logo = Image.open('assets\logo-datascientest.png')
+    image_path = os.path.join('assets', 'logo-datascientest.png')
+    logo = Image.open(image_path)
     st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")
