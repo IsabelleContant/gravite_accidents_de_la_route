@@ -265,8 +265,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    image = Image.open('assets\logo-datascientest.png')
-st.sidebar.image(image, use_column_width="always")
+    logo = Image.open('assets\logo-datascientest.png')
+    st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")
 

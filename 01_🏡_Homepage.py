@@ -26,7 +26,8 @@ st.markdown("""
             </style> """, 
             unsafe_allow_html=True)
 
-st.image('assets\Bannière La gravité des accidents de la route.png')
+banniere = Image.open('assets\Bannière La gravité des accidents de la route.png')
+st.image(banniere, use_column_width="always")
 
 # Titre et sous_titre du projet
 st.markdown("""
@@ -81,7 +82,8 @@ st.markdown("""
             véhicules impliqués et leurs victimes.
             """)
 
-st.image('assets\Description BDD Accidents Routiers.jpg')
+description_bdd = Image.open('assets\Description BDD Accidents Routiers.jpg')
+st.image(description_bdd, use_column_width="always")
 st.write("")
 
 st.markdown("""
@@ -122,8 +124,8 @@ st.markdown("""
             avec les mêmes variables et les mêmes transformations.
 """
 )
-
-st.image('assets\Traitements des données.jpg')
+traitements_data = Image.open('assets\Traitements des données.jpg')
+st.image(traitements_data, use_column_width="always")
 
 st.markdown("""Au total, notre base de données comprend 363 336 personnes accidentées de la route (numérotées de 0 à 363 335)
             décrites par 41 variables.
@@ -134,8 +136,8 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    image = Image.open('assets\logo-datascientest.png')
-    st.sidebar.image(image, use_column_width="always")
+    logo = Image.open('assets\logo-datascientest.png')
+    st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")
 

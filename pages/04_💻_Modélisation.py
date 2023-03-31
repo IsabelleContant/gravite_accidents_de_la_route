@@ -120,8 +120,8 @@ st.markdown("""
             *Pour plus de précisions sur la méthodologie de sélection du "meilleur" modèle et le modèle CatBoost, 
             vous pouvez lire le [rapport d'étude](https://github.com/DataScientest-Studio/Jan23_BDS_Accidents)*
             """)
-
-st.image('assets\choix modèle multiclasses avec catboost.png')
+choix_model = Image.open('assets\choix modèle multiclasses avec catboost.png')
+st.image(choix_model, use_column_width="always")
 st.markdown("""
             Les résultats obtenus avec le modèle CatBoost optimisé avec Optuna s'interprètent ainsi :
             
@@ -305,7 +305,7 @@ col1, col2, col3 = st.columns([1,1,1])
 with col1:
     st.sidebar.write("")
 with col2:
-    image = Image.open('assets\logo-datascientest.png')
-    st.sidebar.image(image, use_column_width="always")
+    logo = Image.open('assets\logo-datascientest.png')
+    st.sidebar.image(logo, use_column_width="always")
 with col3:
     st.sidebar.write("")
