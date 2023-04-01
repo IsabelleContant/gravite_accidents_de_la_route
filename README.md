@@ -8,13 +8,15 @@ This repository contains all the necessary code and data to reproduce our analys
 
 The project has the following file structure:
 
+- **assets**: This directory contains any images or other media that the Streamlit app uses.
 - **data**: This folder contains all the datasets used in the project.
 - **notebooks**: This folder contains Jupyter notebooks with the data analysis and model development.
-- **streamlit_app**: This folder contains the code for a Streamlit app to interact with the project.
-- **.gitignore**: This file contains the list of files and directories that are ignored by Git.
-- **Les_accidents_de_la_Route_en_France-DataScientest-Projet_Fil_Rouge.pdf**: This file contains the final report for the project.
+- **models**: This contains the trained machine learning model. The app uses this file to make predictions based on user input.
+- **pages**: This directory contains the python codes of the different pages of the Streamlit API.
+- **rapports**: This folder contains the final report for the project.
 - **README.md**: This file that you are currently reading.
 - **requirements.txt**: This file contains the list of Python libraries and their versions needed to run the project.
+- **01_🏡_Homepage.py**: This is the main Python script for the Streamlit app. It defines the user interface and the logic for interacting with the machine learning model.
 
 ## Context and Objective
 Our study aims to ***predict the severity of road accidents in France*** by focusing on four categories of users: uninjured, slightly injured, hospitalized, and killed between 2019 and 2021. The analysis will also identify the risk factors associated with road accidents in France.
@@ -30,7 +32,7 @@ The methodology for this project includes:
 - Training and evaluating several machine learning models to predict the severity of accidents.
 - Fine-tuning the selected model and assessing its performance using various metrics.
 
-The results of the project, including model performance metrics and visualizations, will be summarized in 9 Jupyter notebooks located in the [notebooks](https://github.com/DataScientest-Studio/Jan23_BDS_Accidents/tree/main/notebooks) directory divided as follows:
+The results of the project, including model performance metrics and visualizations, will be summarized in 9 Jupyter notebooks located in the [notebooks](https://github.com/IsabelleContant/gravite_accidents_de_la_route/tree/main/notebooks) directory divided as follows:
 - **Partie_1_EDA_accidents_de_la_route_france**:               
 These notebooks contain exploratory data analysis of road accidents in France for the years 2019, 2020, and 2021. We analyze the various factors such as weather conditions, road type, and time of the day that contribute to road accidents. We also visualize the data to get a better understanding of the trends and patterns in road accidents over the years.
 
@@ -59,16 +61,21 @@ In this part, we explore the one-vs-one (OvO) classification technique, which is
 - Omar DIANKHA ([LinkedIn](https://www.linkedin.com/in/omar-diankha-9081161a7/))
 - Idelphonse GBOHOUNME ([LinkedIn](https://www.linkedin.com/in/idelphonse-gbohounme/))
 
-## Streamlit App
-Additionally, we have also created a Streamlit application to explore the data and make predictions using the trained models. To run the Streamlit application, execute the following command:
+## Streamlit App Repository
 
-```shell
-cd streamlit_app
-conda create --name my-awesome-streamlit python=3.9
-conda activate my-awesome-streamlit
-pip install -r requirements.txt
-streamlit run app.py
-```
+This repository contains a Streamlit app that provides a user interface for a machine learning model and data visualization. The app is based on the following files:
+
+- **01_🏡_Homepage.py**: This is the main Python script for the Streamlit app. It defines the user interface and the logic for interacting with the machine learning model.
+
+To run the Streamlit app, follow these steps:
+
+1. Clone the repository to your local machine.
+2. Install the required Python packages by running **pip install -r requirements.txt**.
+3. Run the app by executing **streamlit run 01_🏡_Homepage.py** in your terminal.
+
+The app should then be available at [streamlit_app](https://isabellecontant-gravite-accidents-de-la-rou-01--homepage-3yigk1.streamlit.app/)
+
+Once the app is running, you should be able to interact with it by entering data and clicking on buttons. The app will use the machine learning model to make predictions based on your input.
 
 
 ## Acknowledgments
