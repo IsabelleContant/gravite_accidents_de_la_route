@@ -110,7 +110,7 @@ ignore_variables = ["secu1", "secu2", "secu3", "nb_equipement_securite",
                     "departement", "num_commune", "date", "heure",
                     "latitude", "longitude", "nom_dep"]
 liste_variables = df_accidents.drop(labels=ignore_variables, axis=1).columns.to_list()
-
+liste_variables = sorted(liste_variables)
 
 st.markdown("""
             <h1>
@@ -126,7 +126,7 @@ st.write("")
 col1, col2 = st.columns(2)
 with col1:
     ID_var1 = st.selectbox("*Sélectionnez une première variable à l'aide du menu déroulant 👇*", 
-                           (liste_variables), index=4)
+                           (liste_variables), index=9)
     st.write(f"Vous avez sélectionné la variable : *'{ID_var1}'*")
     fig1 = plt.figure(figsize=(8, 6))
     ax1 = fig1.add_subplot(111)
@@ -144,7 +144,7 @@ with col1:
     
 with col2:
     ID_var2 = st.selectbox("*Sélectionnez une seconde variable à l'aide du menu déroulant 👇*", 
-                           (liste_variables), index=15)
+                           (liste_variables), index=19)
     st.write(f"Vous avez sélectionné la variable : *'{ID_var2}'*")
     
     fig2 = plt.figure(figsize=(8, 6))
@@ -289,6 +289,63 @@ ax4.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, -0.15), nco
 plt.grid(False)
 fig4.tight_layout()
 st.pyplot(fig4)
+
+st.markdown("""
+            <h2>
+            Choisissez la modalité de la variable dont vous souhaitez analyser la temporalité
+            </h2>
+            """, 
+            unsafe_allow_html=True)
+
+cols = st.columns(2)
+variable_choice = cols[0].selectbox("Choisissez la variable :", options=liste_variables, index=9)
+modalite_choice = cols[1].selectbox("Choisissez la modalité :", options=df_accidents[variable_choice].unique(), index=3)
+
+df_accidents_filtered = df_accidents[df_accidents[variable_choice] == modalite_choice]
+
+values = df_accidents_filtered['date'].value_counts().sort_index()
+
+# Créer un nouveau DataFrame avec les données filtrées et la moyenne mobile
+df_plot = pd.DataFrame({'date': values.index, 'value': values.values})
+df_plot['rolling_mean'] = df_plot['value'].rolling(window=30).mean()
+
+import plotly.graph_objs as go
+
+# Créer le graphique de base avec Plotly Express
+fig = go.Figure()
+
+# Ajouter la courbe du nombre d'accidents par jour
+fig.add_scatter(x=df_plot['date'], y=df_plot['value'], mode='lines', name="Nb d'accidents par jour",
+                line=dict(color='#9ebeb8'))
+
+# Ajouter la courbe de la moyenne mobile
+fig.add_scatter(x=df_plot['date'], y=df_plot['rolling_mean'], mode='lines', name='Moyenne Mobile 30 jours',
+                line=dict(dash='dash', width=3, color="#ad7d67"))
+
+# Personnaliser le graphique
+fig.update_layout(
+    title=f"Evolution de nombre de '{modalite_choice}' du {df_accidents.date.min().strftime('%d %b %Y')} au {df_accidents.date.max().strftime('%d %b %Y')}",
+    title_xanchor='center',
+    title_x=0.5,
+    width=1100, height=500, template='plotly_white',
+    font=dict(size=12),
+    title_font=dict(size=24, color="#ad7d67"),
+    xaxis=dict(tickformat="%d %b %Y", tickangle=45, tickmode="auto"),
+    yaxis=dict(title="Nb d'accidents par jour"),
+    hovermode="x unified",
+    legend=dict(
+        orientation="h",
+        yanchor="bottom",
+        y=1.02,
+        xanchor="center",
+        x=0.5,
+        title=None,
+        font=dict(size=16, color="#5e5c5e")
+    )
+)
+
+# Afficher le graphique dans Streamlit
+st.plotly_chart(fig)
 
 
 # Centrage de l'image du logo dans la sidebar
