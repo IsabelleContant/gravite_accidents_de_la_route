@@ -59,7 +59,7 @@ def load_data():
     return df
 
 X_test = load_data()
-var_cat_nominale=sorted(X_test.columns.tolist())
+var_cat_nominale=X_test.columns.tolist()
 
 # Titre 1
 st.markdown("""
@@ -192,11 +192,11 @@ st.write("Nous pouvons obtenir un aperçu plus approfondi de l'effet de chaque f
 ################################################################################
 # Création et affichage du sélecteur des variables et des graphs de dépendance #
 ################################################################################
-
+var_cat_nominale = sorted(var_cat_nominale)
 col1, col2, = st.columns(2) # division de la largeur de la page en 2 pour diminuer la taille du menu déroulant
 with col1:
     ID_var = st.selectbox("*Veuillez sélectionner une variable à l'aide du menu déroulant 👇*", 
-                            (var_cat_nominale))
+                            (var_cat_nominale), index=29)
     st.write("Vous avez sélectionné la variable :", ID_var)
 
 st.write(f"Les catégories de la variable **{ID_var}** sont sur l'axe des abscisses.")
