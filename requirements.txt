@@ -5,7 +5,7 @@ plotly==5.9.0
 scikit-learn==1.2.1
 seaborn==0.12.2
 shap==0.41.0
-streamlit==1.18.2
+streamlit==1.18.1
 streamlit-pandas==0.0.9
 streamlit-shap==1.0.2
 xplotter==0.0.6
