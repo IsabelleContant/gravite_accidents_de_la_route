@@ -73,8 +73,6 @@ To run the Streamlit app, follow these steps:
 2. Install the required Python packages by running **pip install -r requirements.txt**.
 3. Run the app by executing **streamlit run 01_🏡_Homepage.py** in your terminal.
 
-The app should then be available at [streamlit_app](https://isabellecontant-gravite-accidents-de-la-rou-01--homepage-3yigk1.streamlit.app/)
-
 Once the app is running, you should be able to interact with it by entering data and clicking on buttons. The app will use the machine learning model to make predictions based on your input.
 
 
