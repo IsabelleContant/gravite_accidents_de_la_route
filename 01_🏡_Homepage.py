@@ -36,7 +36,7 @@ st.image(banniere, use_column_width="always")
 # Titre et sous_titre du projet
 st.markdown("""
             <p style="color:Gray;text-align:center;font-size:2em;font-style:italic;font-weight:700;font-family:'Roboto Condensed';margin:0px;">
-            Projet Fil Rouge - DataScientist - Promotion Janvier 2023</p>
+            rojet Fil Rouge - DataScientist - Promotion Janvier 2023</p>
             """, 
             unsafe_allow_html=True)
 st.markdown("""
