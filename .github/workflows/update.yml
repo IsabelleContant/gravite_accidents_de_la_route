@@ -1,0 +1,46 @@
+name: Update
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Test python Code
+#        run: |
+#          pip3 install -r requirements.txt
+#          pip3 install pytest
+#          cd app/
+#          pytest
+#  build-push-container:
+#    needs: test
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Build the Docker image
+#        run: |
+#          docker build -t kevanto/fast-api:${GITHUB_SHA} .
+#          docker tag  kevanto/fast-api:${GITHUB_SHA} kevanto/fast-api:latest
+#          docker images
+#          docker run -d -p 80:80 --name fastapi kevanto/fast-api:${GITHUB_SHA}
+#          sleep 10
+#          docker login -u ${{ secrets.REGISTRY_USER  }} -p ${{ secrets.REGISTRY_PASSWD  }}
+#          docker push kevanto/fast-api:${GITHUB_SHA}
+#          docker push kevanto/fast-api:latest
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOSTNAME  }}
+          username: ${{ secrets.USER_NAME  }}
+          key: ${{ secrets.AWS_PRIVATE_KEY  }}
+          port: 22
+          script: |
+            cd ~/projet_mlops/gravite_accidents_de_la_route
+            git pull
