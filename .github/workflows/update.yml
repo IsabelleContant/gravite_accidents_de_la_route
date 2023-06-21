@@ -45,3 +45,4 @@ jobs:
             cd ~/projet_mlops/gravite_accidents_de_la_route
             git reset --hard
             git pull
+            git lfs pull
