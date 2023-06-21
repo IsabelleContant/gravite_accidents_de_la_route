@@ -11,4 +11,4 @@ streamlit-pandas==0.0.9
 streamlit-shap==1.0.2
 xplotter==0.0.6
 matplotlib
-numpy
+numpy==1.23.5
