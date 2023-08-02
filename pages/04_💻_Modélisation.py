@@ -18,6 +18,7 @@ st.set_page_config(
 # Définition de quelques styles css
 st.markdown(""" 
             <style>
+            @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap');
             body {font-family:'Roboto Condensed';}
             h1 {font-family:'Roboto Condensed';
                 color:#603b1b;

@@ -10,6 +10,7 @@ st.set_page_config(
 # Définition de quelques styles css
 st.markdown(""" 
             <style>
+            @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap');
             body {font-family:'Roboto Condensed';}
             h1 {font-family:'Roboto Condensed';
                 color:#603b1b;
@@ -36,12 +37,13 @@ st.image(banniere, use_column_width="always")
 # Titre et sous_titre du projet
 st.markdown("""
             <p style="color:Gray;text-align:center;font-size:2em;font-style:italic;font-weight:700;font-family:'Roboto Condensed';margin:0px;">
-            Projet Fil Rouge - DataScientist - Promotion Janvier 2023</p>
+            Projet Fil Rouge - DataScientist - Promotion Janvier 2023<br>
+            Projet Fil Rouge - MLOps - Promotion Avril 2023</p>
             """, 
             unsafe_allow_html=True)
 st.markdown("""
             <p style="color:Gray;text-align:center;font-size:1.5em;font-style:italic;font-family:'Roboto Condensed';margin:0px;">
-            <strong>Auteurs :</strong> Anicet Arthur KOUASSI - Isabelle Contant - Omar DIANKHA - Idelphonse GBOHOUNME</p>
+            <strong>Auteur :</strong> Isabelle Contant</p>
             """, 
             unsafe_allow_html=True)
 st.write("")
