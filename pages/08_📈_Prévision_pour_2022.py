@@ -39,6 +39,10 @@ st.markdown("""
             p {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
             .css-16idsys p {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem; margin: 0px;}
             .css-5rimss li {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
+            .css-184tjsw p {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
+    word-break: break-word;
+    /* font-size: 14px; */
+}
             </style> """, 
             unsafe_allow_html=True)
 
