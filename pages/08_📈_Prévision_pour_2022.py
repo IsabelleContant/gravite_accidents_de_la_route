@@ -40,9 +40,7 @@ st.markdown("""
             .css-16idsys p {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem; margin: 0px;}
             .css-5rimss li {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
             .css-184tjsw p {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
-    word-break: break-word;
-    /* font-size: 14px; */
-}
+            .css-1offfwp li {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
             </style> """, 
             unsafe_allow_html=True)
 
@@ -230,7 +228,8 @@ forecast = models[variable].predict(future)
 # Graphique n°1 #
 #################
 start_date = datetime(2022, 1, 1) # Début de la période de prédiction
-end_date = start_date + timedelta(days=(days-1)) # Fin de la période de prédiction
+end_date = start_date + timedelta(days=(days)) # Fin de la période de prédiction
+end_date_titre = end_date - timedelta(days=1) # Fin de la période de prédiction pour le titre du graphique
 
 fig = plot_plotly(models[variable], 
                   forecast, 
@@ -238,7 +237,7 @@ fig = plot_plotly(models[variable],
                   changepoints=True)
 
 fig.update_layout(
-    title="Prévisions de la variable '{}' du 01 Jan 2022 au {}".format(variable, end_date.strftime('%d %b %Y')),
+    title="Prévisions de la variable '{}' du 01 Jan 2022 au {}".format(variable, end_date_titre.strftime('%d %b %Y')),
     title_font=dict(size=24, color="#ad7d67"),
     title_xanchor='center',
     title_x=0.5,
@@ -247,7 +246,7 @@ fig.update_layout(
     xaxis=dict(
         title="Date",
         type='date',
-        range=['2019-01-01', '2022-12-31'],
+        range=["2019-01-01", end_date.strftime('%Y-%m-%d')],
         tickformat="%d-%m-%Y", 
         tickangle=45, 
         dtick="M1", 
