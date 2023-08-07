@@ -562,19 +562,8 @@ Certains jours fériés, par exemple, peuvent entraîner une augmentation des ac
 **Le graphique Extra Regressors (Régresseurs supplémentaires)** présente l'influence des variables externes sur la variable principale. 
 Ces régresseurs supplémentaires montrent comment ils impactent la prévision de la variable principale.
 
-Lorsque nous observons les graphiques, une particularité se démarque pour la variable `gravite_accident_tué`. 
-Contrairement aux autres indicateurs, les valeurs associées à cette catégorie sont exprimées en pourcentage (%). 
-Cette spécificité est due à la nature du modèle utilisé pour prédire cette donnée.
-
-Pour `gravite_accident_tué`, nous avons recours à un **modèle multiplicatif**. Dans ce type de modèle, les effets de la saisonnalité sont multipliés 
-par la tendance. Ces modèles sont adaptés lorsque les variations saisonnières augmentent ou diminuent proportionnellement avec le temps. 
-C'est pourquoi les résultats sont exprimés en pourcentage, reflétant une variation relative plutôt qu'une variation absolue.
-
-En revanche, pour `total_accidents`, `gravite_accident_blessé_léger`, `gravite_accident_blessé_hospitalisé` et `gravite_accident_indemne`, 
-un **modèle additif** est utilisé. Dans ces modèles, les effets de la saisonnalité sont simplement ajoutés à la tendance. 
-Ils sont appropriés lorsque les variations saisonnières restent constantes au fil du temps, d'où l'absence de pourcentage dans leurs représentations graphiques.
-
-Il est crucial de comprendre ces nuances pour interpréter correctement les graphiques et les prévisions associées.
+Les modèles utilisés sont **additifs**. Dans ces modèles, les effets de la saisonnalité sont simplement ajoutés à la tendance. 
+Ils sont appropriés lorsque les variations saisonnières restent constantes au fil du temps et ne dépendent pas de la tendance.
 
 <p style="color: #ad7d67; font-weight:700; font-style:italic; margin: 0px;">
 Voici comment les prévisions sont calculées pour chaque variable, c'est-à-dire comment les composants sont combinés pour obtenir les prévisions finales.</p>
@@ -628,8 +617,17 @@ fig8.update_layout(
     height=550,
 )
 
+# Centrage du graphique dans la page
+col1, col2, col3 = st.columns([0.5,8,0.5])
+with col1:
+    st.write("")
+with col2:
+    # Pour chaque regresseur
+    st.plotly_chart(fig8, theme=None)
+with col3:
+    st.write("")
 # Afficher le graphique
-st.plotly_chart(fig8, theme=None)
+
 
 st.write(f"Le modèle prévoit {contributions['Total prévu']:,d} accidents de la route pour la période sélectionnée.")
 st.write("Il s'agit de la somme des contributions de cinq composants différents :")
