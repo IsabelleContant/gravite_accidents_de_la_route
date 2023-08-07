@@ -57,7 +57,7 @@ st.markdown("""
 st.write("")
 
 st.write("***Pour information : Publication le 31 janvier des chiffres quasi-définitifs du bilan de la sécurité routière en 2022.***")
-st.write("[Bilan 2022 de la sécurité routière](https://www.onisr.securite-routiere.gouv.fr/etat-de-l-insecurite-routiere/bilans-annuels-de-la-securite-routiere/bilan-2022-de-la-securite-routiere)")
+st.write("[Bilan 2022 de la sécurité routière](https://www.onisr.securite-routiere.gouv.fr/etat-de-linsecurite-routiere/bilans-annuels-de-la-securite-routiere/bilan-2022-de-la-securite-routiere)")
 st.write("")
 image_path = os.path.join('assets', 'Bilan 2022 securite routiere.png')
 bilan_2022 = Image.open(image_path)

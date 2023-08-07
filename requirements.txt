@@ -2,12 +2,12 @@ altair==5.0.1
 catboost==1.2
 pandas==2.0.3
 Pillow==9.4.0
-plotly==5.9.0
+plotly==5.11.0
 scikit-learn==1.2.1
 seaborn==0.12.2
 prophet==1.1.4
 shap==0.42.0
-streamlit==1.24.0
+streamlit==1.25.0
 streamlit-shap==1.0.2
 xplotter==0.0.6
 matplotlib==3.7.0
