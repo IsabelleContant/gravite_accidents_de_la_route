@@ -10,6 +10,8 @@ from prophet.plot import plot_plotly
 from prophet.serialize import model_from_json
 import json
 import calendar
+from urllib.parse import quote
+import requests
 
 ############################
 # Configuration de la page #
@@ -48,6 +50,11 @@ st.markdown("""
             .st-ae {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem; background-color: #f8f9fb;}
             .st-cn {background-color: #f8f9fb; }
             .css-1wivap2 {font-family:'Roboto Condensed';}
+            .css-7ym5gk {background-color: #135e58; }
+            .css-7ym5gk p {color: white; font-weight: bold; font-size:1.5em;}
+            .css-7ym5gk:active {border-color: #8B4147; background-color: #8B4147;}
+            .css-7ym5gk:focus:not(:active) {border-color: #8B4147; background-color: #8B4147;}
+            .css-7ym5gk:hover {border-color: #418B85; background-color: #418B85;}
             </style> """, 
             unsafe_allow_html=True)
 
@@ -82,15 +89,6 @@ models = {
     'gravite_accident_blessé_hospitalisé': load_model('Prophet_model_acc_hosp.json'),
     'gravite_accident_indemne': load_model('Prophet_model_acc_indemnes.json')
 }
-
-# Fonction pour Charger les régresseurs utilisés dans chaque modèle
-@st.cache_data
-def load_regressors(model_name):
-    file_path = os.path.join('data', f"{model_name}_regressors.csv")
-    regressors = pd.read_csv(file_path)
-    regressors['ds'] = pd.to_datetime(regressors['ds']) # Convertir la colonne 'ds' en datetime
-    return regressors
-
 
 ####################################################
 # Titre et méthodologie de la modélisation Prophet #
@@ -202,302 +200,143 @@ Vous devez aussi choisir la période de temps, de 1 à 365 jours, dont vous voul
 st.write("")
 st.write("")
 
-# Définissez les largeurs des colonnes principales et des colonnes vides
-main_col_width = 6
-empty_col_width = 0.5
 # Divisez l'espace en 3 colonnes avec des largeurs personnalisées
-cols = st.columns([main_col_width, empty_col_width, main_col_width])
-# Attribuez les colonnes principales aux indices 0 et 3
-col1, col2, col3 = cols[0], cols[1], cols[2]
+col1, col2, col3= st.columns([6,0.5,6])
 with col1:
     variable = st.selectbox('***Choisissez la variable dont vous souhaitez connaître les prédictions :***', list(models.keys()))
 with col3:
     days = st.slider('***Choisissez le nombre de jours que vous souhaitez prédire :***', 1, 365, 181)
 st.write("")
 st.write("")
-############################
-# Création des prédictions #
-############################
+############################################
+# Création des prédictions : Appel FastAPI #
+############################################
 
-# Chargement des régresseurs
-regressors = load_regressors(variable).drop(columns=['Unnamed: 0'], axis=1)
-
-# Création du DataFrame future
-future = models[variable].make_future_dataframe(periods=days, freq='D', include_history=True)
-
-# Fusion de future avec les régresseurs sur la colonne 'ds'
-future = pd.merge(future, regressors, on='ds', how='left')
-
-# Faire la prédiction
-forecast = models[variable].predict(future)
-
-######################################################################
-# les totaux  calculés sur la période sélectionnée et les évolutions #
-######################################################################
-# Dates pour 2022
-start_date_2022  = datetime(2022, 1, 1) # Début de la période de prédiction
-end_date_2022 = start_date_2022 + timedelta(days=(days)) # Fin de la période de prédiction
-end_date_2022_titre = end_date_2022 - timedelta(days=1) # Fin de la période de prédiction pour le titre du graphique
-
-# Dates pour 2021
-start_date_2021 = datetime(2021, 1, 1) # Début de la période 
-end_date_2021 = start_date_2021 + timedelta(days=(days)) # Fin de la période 
-end_date_2021_titre = end_date_2021 - timedelta(days=1) 
-
-# Dates pour 2020
-start_date_2020 = datetime(2020, 1, 1) # Début de la période 
-end_date_2020 = start_date_2020 + timedelta(days=(days)) # Fin de la période 
-end_date_2020_titre = end_date_2020 - timedelta(days=1)
-
-# Dates pour 2019
-start_date_2019 = datetime(2019, 1, 1) # Début de la période 
-end_date_2019 = start_date_2019 + timedelta(days=(days)) # Fin de la période 
-end_date_2019_titre = end_date_2019 - timedelta(days=1)
-
-# Filtrer les données pour chaque année
-data_2021 = data[(data['ds'] >= start_date_2021) & (data['ds'] <= end_date_2021)]
-data_2020 = data[(data['ds'] >= start_date_2020) & (data['ds'] <= end_date_2020)]
-data_2019 = data[(data['ds'] >= start_date_2019) & (data['ds'] <= end_date_2019)]
-forecast_2022 = forecast[(forecast['ds'] >= start_date_2022) & (forecast['ds'] <= end_date_2022)]
-
-# Calculer les évolutions
-evol_2020 = (data_2020[variable].sum() - data_2019[variable].sum()) / data_2019[variable].sum()
-evol_2021 = (data_2021[variable].sum() - data_2020[variable].sum()) / data_2020[variable].sum()
-evol_2022 = (forecast_2022['yhat'].sum() - data_2021[variable].sum()) / data_2021[variable].sum()
-evol_2022_vs_2019 = (forecast_2022['yhat'].sum() - data_2019[variable].sum()) / data_2019[variable].sum()
-
-
-#################
-# Graphique n°1 #
-#################
-
-# Titre des métriques
-st.markdown(f"#### Évolution du nombre de '{variable}' pour la totalité de la période sélectionnée de {days} jours")
-
-left, middle, right, far_right = st.columns(4)
-
-with left:
-    st.metric(f"Du {start_date_2019.strftime('%d-%m-%Y')} au {end_date_2019_titre.strftime('%d-%m-%Y')}", 
-              f"{int(data_2019[variable].sum()):,}",
-              f"Non disponible")
-    fig1, ax1 = plt.subplots()
-    sns.lineplot(data=data_2019, x="ds", y=variable, color="#ad7d67", ax=ax1)
-    ax1.set_xlabel("Date")
-    sns.despine()
-    st.pyplot(fig1)
-with middle:
-    st.metric(f"Du {start_date_2020.strftime('%d-%m-%Y')} au {end_date_2020_titre.strftime('%d-%m-%Y')}",
-              f"{int(data_2020[variable].sum()):,d}",
-              f"{evol_2020:+.1%}")
-    fig2, ax2 = plt.subplots()
-    sns.lineplot(data=data_2020, x="ds", y=variable, color="#ad7d67", ax=ax2)
-    ax2.set_xlabel("Date")
-    sns.despine()
-    st.pyplot(fig2)
-with right:
-    st.metric(f"Du {start_date_2021.strftime('%d-%m-%Y')} au {end_date_2021_titre.strftime('%d-%m-%Y')}", 
-              f"{int(data_2021[variable].sum()):,d}",
-              f"{evol_2021:+.1%}")
-    fig3, ax3 = plt.subplots()
-    sns.lineplot(data=data_2021, x="ds", y=variable, color="#ad7d67", ax=ax3)
-    ax3.set_xlabel("Date")
-    sns.despine()
-    st.pyplot(fig3)
-with far_right:
-    st.metric(f"Du {start_date_2022.strftime('%d-%m-%Y')} au {end_date_2022_titre.strftime('%d-%m-%Y')}", 
-              f"{int(forecast_2022['yhat'].sum()):,d}",
-              f"{evol_2022:+.1%} ({evol_2022_vs_2019:+.1%} vs. 2019)")
-    fig4, ax4 = plt.subplots()
-    sns.lineplot(data=forecast_2022, x="ds", y='yhat', color="#9ebeb8", ax=ax4)
-    ax4.set_xlabel("Date")
-    sns.despine()
-    st.pyplot(fig4)
-
-st.write("")
-#################
-# Graphique n°2 #
-#################
-
-fig5 = plot_plotly(models[variable], 
-                  forecast, 
-                  trend=True, 
-                  changepoints=True)
-
-fig5.update_layout(
-    title=f"Représentation globale de la série temporelle '{variable}'<br>du 01 Jan 2019 au {end_date_2022_titre.strftime('%d %b %Y')}",
-    title_font=dict(size=26, color="#ad7d67"),
-    title_xanchor='center',
-    title_x=0.5,
-    width=1050, height=700, 
-    font=dict(size=12),
-    xaxis=dict(
-        title="Date",
-        type='date',
-        range=["2019-01-01", end_date_2022.strftime('%Y-%m-%d')],
-        tickformat="%d-%m-%Y", 
-        tickangle=-45, 
-        dtick="M1", 
-        tickfont=dict(size=10), 
-        ticklabelmode="period",
-        ticklabelposition="outside top"),
-    yaxis_title=variable,
-    hovermode="x unified",
-    legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="center",
-        x=0.5,
-        title=None,
-        font=dict(size=16, color="#5e5c5e")
-    ))
-fig5.update_xaxes(showgrid=True)
-st.plotly_chart(fig5)
-
-st.markdown("""
-Ce graphique montre les données historiques (points noirs) et les les valeurs prédites (ligne bleue) pour la période sélectionnée.
-Les valeurs prédites sont donc calculées pour l'ensemble de données complet lors du calcul prévisionnel.
-La bande ombrée entourant la ligne représente un intervalle de confiance à 95%.
-
-La ligne rouge montre la tendance, qui est la composante de tendance du modèle. La tendance est calculée à partir de la moyenne mobile sur
-les changements de tendance détectés dans les données historiques. Elle nous donne une vision synthétique du signal et aide à visualiser 
-les évolutions globales.
-Les lignes verticales rouges sont les points de changement de tendance détectés par le modèle. Ces points de changement de tendance sont
-utilisés pour calculer la tendance, mais ne sont pas utilisés pour calculer les prévisions.
-
-**Ces prévisions semblent saisonnières**, mais il est difficile de distinguer les différentes composantes périodiques sur ce premier tracé. 
-Vérifions une autre visualisation pour **comprendre comment ces modèles saisonniers affectent la sortie du modèle**:
-""", unsafe_allow_html=True)
-st.write("")
-st.write("")
-
-#################
-# Graphique n°3 #
-#################
-def plot_seasonality(forecast, component, fillcolor, linecolor):
-    # Créer un objet de figure Plotly
-    fig6 = go.Figure()
-
-    # Extraire le composant saisonnier
-    component_df = forecast[[component]].dropna()
-    values = component_df[component]
-
-    if component == 'weekly':
-        # Créer une variable 'day of week'
-        component_df['day_of_week'] = forecast['ds'].dt.dayofweek
-        # Grouper par 'day of week' et sommer les valeurs
-        values = component_df.groupby('day_of_week')[component].mean()
-        x_data = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    elif component == 'yearly':
-        # Créer une variable 'day of year'
-        component_df['day_of_year'] = forecast['ds'].dt.dayofyear
-        # Grouper par 'day of year' et sommer les valeurs
-        values = component_df.groupby('day_of_year')[component].mean()
-        x_data = [i for i in range(1, 366)]  # Jours de l'année
-
-    # Ajouter le composant saisonnier
-    fig6.add_trace(go.Scatter(
-        x=x_data,
-        y=values,
-        mode='lines',
-        fill='tozeroy',  # Remplir jusqu'à l'axe des y
-        fillcolor=fillcolor,  # Couleur de remplissage en hexadécimal
-        line=dict(color=linecolor),  # Couleur de ligne en hexadécimal
-        name=component,
-    ))
-
-    # Ajouter un titre
-    fig6.update_layout(
-        title=f"<b>{component} Seasonality</b>",
-        title_font=dict(size=26, color="#ad7d67"),
-        title_xanchor='center',
-        title_x=0.5,
-        yaxis=dict(
-            title=variable,
-            tickformat=''),
-        width=900, height=350,
-        font=dict(size=12),
-        showlegend=False,  # Supprimer la légende
-    )
-
-    # Ajuster les labels sur l'axe des x pour le composant 'yearly'
-    if component == 'yearly':
-        # Premier jour de chaque mois
-        tickvals = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
-        fig6.update_xaxes(
-            tickmode='array',
-            tickvals=tickvals,
-            tickangle=-45,
-            ticktext=[calendar.month_name[i] for i in range(1, 13)]  # Noms complets des mois
-        )
-
-    # Afficher le graphique
-    st.plotly_chart(fig6, theme=None)
-
-
-
-# Centrage des graphiques dans la page
-col1, col2, col3 = st.columns([0.5,8,0.5])
-with col1:
-    st.write("")
+# Divisez l'espace en 3 colonnes avec des largeurs personnalisées
+col1, col2, col3= st.columns([4,4,4])
 with col2:
-    # Pour chaque composant saisonnier
-    for component, fillcolor, linecolor in [('weekly', '#f779ae', '#f6408d'), ('yearly', '#abdfe1', '#84d4d5')]: 
-        plot_seasonality(forecast, component, fillcolor, linecolor)
-with col3:
+    # Bouton pour obtenir les prédictions
+    run_prediction = st.button("Cliquez pour obtenir les Prédictions")
+st.write("")
+
+if run_prediction:
+    
+    # Encodage du nom de la variable pour l'URL
+    encoded_variable = quote(variable)
+
+    # Appel à l'API FastAPI
+    response = requests.post(f"http://127.0.0.1:8000/predict/{encoded_variable}/{days}")
+
+    # Vérifier si la requête a réussi
+    if response.status_code == 200:
+        predictions = response.json()
+        
+        # Transformation du JSON en DataFrame
+        forecast = pd.DataFrame(predictions)
+        forecast['ds'] = pd.to_datetime(forecast['ds']) # Convertir la colonne 'ds' en datetime
+
+    else:
+        st.write("Erreur lors de la récupération des prédictions de l'API.")
+
+    ######################################################################
+    # les totaux  calculés sur la période sélectionnée et les évolutions #
+    ######################################################################
+    # Dates pour 2022
+    start_date_2022  = datetime(2022, 1, 1) # Début de la période de prédiction
+    end_date_2022 = start_date_2022 + timedelta(days=(days)) # Fin de la période de prédiction
+    end_date_2022_titre = end_date_2022 - timedelta(days=1) # Fin de la période de prédiction pour le titre du graphique
+
+    # Dates pour 2021
+    start_date_2021 = datetime(2021, 1, 1) # Début de la période 
+    end_date_2021 = start_date_2021 + timedelta(days=(days)) # Fin de la période 
+    end_date_2021_titre = end_date_2021 - timedelta(days=1) 
+
+    # Dates pour 2020
+    start_date_2020 = datetime(2020, 1, 1) # Début de la période 
+    end_date_2020 = start_date_2020 + timedelta(days=(days)) # Fin de la période 
+    end_date_2020_titre = end_date_2020 - timedelta(days=1)
+
+    # Dates pour 2019
+    start_date_2019 = datetime(2019, 1, 1) # Début de la période 
+    end_date_2019 = start_date_2019 + timedelta(days=(days)) # Fin de la période 
+    end_date_2019_titre = end_date_2019 - timedelta(days=1)
+
+    # Filtrer les données pour chaque année
+    data_2021 = data[(data['ds'] >= start_date_2021) & (data['ds'] <= end_date_2021)]
+    data_2020 = data[(data['ds'] >= start_date_2020) & (data['ds'] <= end_date_2020)]
+    data_2019 = data[(data['ds'] >= start_date_2019) & (data['ds'] <= end_date_2019)]
+    forecast_2022 = forecast[(forecast['ds'] >= start_date_2022) & (forecast['ds'] <= end_date_2022)]
+
+    # Calculer les évolutions
+    evol_2020 = (data_2020[variable].sum() - data_2019[variable].sum()) / data_2019[variable].sum()
+    evol_2021 = (data_2021[variable].sum() - data_2020[variable].sum()) / data_2020[variable].sum()
+    evol_2022 = (forecast_2022['yhat'].sum() - data_2021[variable].sum()) / data_2021[variable].sum()
+    evol_2022_vs_2019 = (forecast_2022['yhat'].sum() - data_2019[variable].sum()) / data_2019[variable].sum()
+
+
+    #################
+    # Graphique n°1 #
+    #################
+
+    # Titre des métriques
+    st.markdown(f"#### Évolution du nombre de '{variable}' pour la totalité de la période sélectionnée de {days} jours")
+
+    left, middle, right, far_right = st.columns(4)
+
+    with left:
+        st.metric(f"Du {start_date_2019.strftime('%d-%m-%Y')} au {end_date_2019_titre.strftime('%d-%m-%Y')}", 
+                f"{int(data_2019[variable].sum()):,}",
+                f"Non disponible")
+        fig1, ax1 = plt.subplots()
+        sns.lineplot(data=data_2019, x="ds", y=variable, color="#ad7d67", ax=ax1)
+        ax1.set_xlabel("Date")
+        sns.despine()
+        st.pyplot(fig1)
+    with middle:
+        st.metric(f"Du {start_date_2020.strftime('%d-%m-%Y')} au {end_date_2020_titre.strftime('%d-%m-%Y')}",
+                f"{int(data_2020[variable].sum()):,d}",
+                f"{evol_2020:+.1%}")
+        fig2, ax2 = plt.subplots()
+        sns.lineplot(data=data_2020, x="ds", y=variable, color="#ad7d67", ax=ax2)
+        ax2.set_xlabel("Date")
+        sns.despine()
+        st.pyplot(fig2)
+    with right:
+        st.metric(f"Du {start_date_2021.strftime('%d-%m-%Y')} au {end_date_2021_titre.strftime('%d-%m-%Y')}", 
+                f"{int(data_2021[variable].sum()):,d}",
+                f"{evol_2021:+.1%}")
+        fig3, ax3 = plt.subplots()
+        sns.lineplot(data=data_2021, x="ds", y=variable, color="#ad7d67", ax=ax3)
+        ax3.set_xlabel("Date")
+        sns.despine()
+        st.pyplot(fig3)
+    with far_right:
+        st.metric(f"Du {start_date_2022.strftime('%d-%m-%Y')} au {end_date_2022_titre.strftime('%d-%m-%Y')}", 
+                f"{int(forecast_2022['yhat'].sum()):,d}",
+                f"{evol_2022:+.1%} ({evol_2022_vs_2019:+.1%} vs. 2019)")
+        fig4, ax4 = plt.subplots()
+        sns.lineplot(data=forecast_2022, x="ds", y='yhat', color="#9ebeb8", ax=ax4)
+        ax4.set_xlabel("Date")
+        sns.despine()
+        st.pyplot(fig4)
+
     st.write("")
+    #################
+    # Graphique n°2 #
+    #################
 
-st.markdown("""
-Le **graphique Weekly (Hebdomadaire)** illustre la saisonnalité hebdomadaire de la variable choisie. 
-Il montre comment la variable évolue en moyenne chaque jour de la semaine, du lundi au dimanche. 
-Par exemple, si nous observons un pic le vendredi, cela signifie que cette journée a tendance à avoir des valeurs plus élevées 
-par rapport aux autres jours de la semaine.
+    fig5 = plot_plotly(models[variable], 
+                    forecast, 
+                    trend=True, 
+                    changepoints=True)
 
-Le **graphique Yearly (Annuel)** dépeint la saisonnalité annuelle. Il montre les tendances et les variations de la variable au fil des mois de l'année, 
-aidant à identifier des périodes spécifiques de l'année où la variable augmente ou diminue.
-
-<p style="color: #ad7d67; font-weight:700; font-style:italic; margin: 0px;">
-Comment le modèle prend des décisions ?</p>
-
-Nous pouvons examiner un seul composant et voir comment sa contribution aux prévisions globales évolue au fil du temps. 
-Les différentes composantes qui influencent les prévisions sont la tendance, les saisonnalités et les régresseurs externes. 
-Nous avons déjà observé l'impact des saisonnalités hebdomadaires et annuelles, regardons maintenant les régresseurs externes comme 
-les vacances et les autres variables inclues dans le modèle.
-""", unsafe_allow_html=True)
-
-
-#################
-# Graphique n°4 #
-#################
-# Fonction pour construire un graphique pour chaque régresseur
-def plot_regresseur(forecast, regresseur, fillcolor, linecolor):
-    # Créer un objet de figure Plotly
-    fig7 = go.Figure()
-
-    # Extraire le regresseur
-    regresseur_df = forecast[[regresseur, 'ds']].dropna()
-    values = regresseur_df[regresseur]
-
-    # Ajouter le regresseur
-    fig7.add_trace(go.Scatter(
-        x=regresseur_df['ds'],
-        y=values,
-        mode='lines',
-        fill='tozeroy',  # Remplir jusqu'à l'axe des y
-        fillcolor=fillcolor,  # Couleur de remplissage en hexadécimal
-        line=dict(color=linecolor),  # Couleur de ligne en hexadécimal
-        name=regresseur,
-    ))
-    
-    # Modifier le nom du régresseur pour le titre
-    title_regresseur = regresseur.replace("_additive", "").replace("_multiplicative", "")
-    
-    # Ajouter un titre
-    fig7.update_layout(
-        title=f"<b>Impact du régresseur '{title_regresseur}' sur la prévision</b>",
+    fig5.update_layout(
+        title=f"Représentation globale de la série temporelle '{variable}'<br>du 01 Jan 2019 au {end_date_2022_titre.strftime('%d %b %Y')}",
         title_font=dict(size=26, color="#ad7d67"),
         title_xanchor='center',
         title_x=0.5,
+        width=1050, height=700, 
+        font=dict(size=12),
         xaxis=dict(
             title="Date",
             type='date',
@@ -508,13 +347,7 @@ def plot_regresseur(forecast, regresseur, fillcolor, linecolor):
             tickfont=dict(size=10), 
             ticklabelmode="period",
             ticklabelposition="outside top"),
-        yaxis=dict(
-            title=variable,
-            tickformat=''
-            ),
-        width=900, height=350, 
-        font=dict(size=12),
-        showlegend=False,  # Supprimer la légende
+        yaxis_title=variable,
         hovermode="x unified",
         legend=dict(
             orientation="h",
@@ -523,119 +356,293 @@ def plot_regresseur(forecast, regresseur, fillcolor, linecolor):
             xanchor="center",
             x=0.5,
             title=None,
-            font=dict(size=16, color="#5e5c5e")))
+            font=dict(size=16, color="#5e5c5e")
+        ))
+    fig5.update_xaxes(showgrid=True)
+    st.plotly_chart(fig5)
 
+    st.markdown("""
+    Ce graphique montre les données historiques (points noirs) et les les valeurs prédites (ligne bleue) pour la période sélectionnée.
+    Les valeurs prédites sont donc calculées pour l'ensemble de données complet lors du calcul prévisionnel.
+    La bande ombrée entourant la ligne représente un intervalle de confiance à 95%.
+
+    La ligne rouge montre la tendance, qui est la composante de tendance du modèle. La tendance est calculée à partir de la moyenne mobile sur
+    les changements de tendance détectés dans les données historiques. Elle nous donne une vision synthétique du signal et aide à visualiser 
+    les évolutions globales.
+    Les lignes verticales rouges sont les points de changement de tendance détectés par le modèle. Ces points de changement de tendance sont
+    utilisés pour calculer la tendance, mais ne sont pas utilisés pour calculer les prévisions.
+
+    **Ces prévisions semblent saisonnières**, mais il est difficile de distinguer les différentes composantes périodiques sur ce premier tracé. 
+    Vérifions une autre visualisation pour **comprendre comment ces modèles saisonniers affectent la sortie du modèle**:
+    """, unsafe_allow_html=True)
+    st.write("")
+    st.write("")
+
+    #################
+    # Graphique n°3 #
+    #################
+    def plot_seasonality(forecast, component, fillcolor, linecolor):
+        # Créer un objet de figure Plotly
+        fig6 = go.Figure()
+
+        # Extraire le composant saisonnier
+        component_df = forecast[[component]].dropna()
+        values = component_df[component]
+
+        if component == 'weekly':
+            # Créer une variable 'day of week'
+            component_df['day_of_week'] = forecast['ds'].dt.dayofweek
+            # Grouper par 'day of week' et sommer les valeurs
+            values = component_df.groupby('day_of_week')[component].mean()
+            x_data = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        elif component == 'yearly':
+            # Créer une variable 'day of year'
+            component_df['day_of_year'] = forecast['ds'].dt.dayofyear
+            # Grouper par 'day of year' et sommer les valeurs
+            values = component_df.groupby('day_of_year')[component].mean()
+            x_data = [i for i in range(1, 366)]  # Jours de l'année
+
+        # Ajouter le composant saisonnier
+        fig6.add_trace(go.Scatter(
+            x=x_data,
+            y=values,
+            mode='lines',
+            fill='tozeroy',  # Remplir jusqu'à l'axe des y
+            fillcolor=fillcolor,  # Couleur de remplissage en hexadécimal
+            line=dict(color=linecolor),  # Couleur de ligne en hexadécimal
+            name=component,
+        ))
+
+        # Ajouter un titre
+        fig6.update_layout(
+            title=f"<b>{component} Seasonality</b>",
+            title_font=dict(size=26, color="#ad7d67"),
+            title_xanchor='center',
+            title_x=0.5,
+            yaxis=dict(
+                title=variable,
+                tickformat=''),
+            width=900, height=350,
+            font=dict(size=12),
+            showlegend=False,  # Supprimer la légende
+        )
+
+        # Ajuster les labels sur l'axe des x pour le composant 'yearly'
+        if component == 'yearly':
+            # Premier jour de chaque mois
+            tickvals = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
+            fig6.update_xaxes(
+                tickmode='array',
+                tickvals=tickvals,
+                tickangle=-45,
+                ticktext=[calendar.month_name[i] for i in range(1, 13)]  # Noms complets des mois
+            )
+
+        # Afficher le graphique
+        st.plotly_chart(fig6, theme=None)
+
+
+
+    # Centrage des graphiques dans la page
+    col1, col2, col3 = st.columns([0.5,8,0.5])
+    with col1:
+        st.write("")
+    with col2:
+        # Pour chaque composant saisonnier
+        for component, fillcolor, linecolor in [('weekly', '#f779ae', '#f6408d'), ('yearly', '#abdfe1', '#84d4d5')]: 
+            plot_seasonality(forecast, component, fillcolor, linecolor)
+    with col3:
+        st.write("")
+
+    st.markdown("""
+    Le **graphique Weekly (Hebdomadaire)** illustre la saisonnalité hebdomadaire de la variable choisie. 
+    Il montre comment la variable évolue en moyenne chaque jour de la semaine, du lundi au dimanche. 
+    Par exemple, si nous observons un pic le vendredi, cela signifie que cette journée a tendance à avoir des valeurs plus élevées 
+    par rapport aux autres jours de la semaine.
+
+    Le **graphique Yearly (Annuel)** dépeint la saisonnalité annuelle. Il montre les tendances et les variations de la variable au fil des mois de l'année, 
+    aidant à identifier des périodes spécifiques de l'année où la variable augmente ou diminue.
+
+    <p style="color: #ad7d67; font-weight:700; font-style:italic; margin: 0px;">
+    Comment le modèle prend des décisions ?</p>
+
+    Nous pouvons examiner un seul composant et voir comment sa contribution aux prévisions globales évolue au fil du temps. 
+    Les différentes composantes qui influencent les prévisions sont la tendance, les saisonnalités et les régresseurs externes. 
+    Nous avons déjà observé l'impact des saisonnalités hebdomadaires et annuelles, regardons maintenant les régresseurs externes comme 
+    les vacances et les autres variables inclues dans le modèle.
+    """, unsafe_allow_html=True)
+
+
+    #################
+    # Graphique n°4 #
+    #################
+    # Fonction pour construire un graphique pour chaque régresseur
+    def plot_regresseur(forecast, regresseur, fillcolor, linecolor):
+        # Créer un objet de figure Plotly
+        fig7 = go.Figure()
+
+        # Extraire le regresseur
+        regresseur_df = forecast[[regresseur, 'ds']].dropna()
+        values = regresseur_df[regresseur]
+
+        # Ajouter le regresseur
+        fig7.add_trace(go.Scatter(
+            x=regresseur_df['ds'],
+            y=values,
+            mode='lines',
+            fill='tozeroy',  # Remplir jusqu'à l'axe des y
+            fillcolor=fillcolor,  # Couleur de remplissage en hexadécimal
+            line=dict(color=linecolor),  # Couleur de ligne en hexadécimal
+            name=regresseur,
+        ))
+        
+        # Modifier le nom du régresseur pour le titre
+        title_regresseur = regresseur.replace("_additive", "").replace("_multiplicative", "")
+        
+        # Ajouter un titre
+        fig7.update_layout(
+            title=f"<b>Impact du régresseur '{title_regresseur}' sur la prévision</b>",
+            title_font=dict(size=26, color="#ad7d67"),
+            title_xanchor='center',
+            title_x=0.5,
+            xaxis=dict(
+                title="Date",
+                type='date',
+                range=["2019-01-01", end_date_2022.strftime('%Y-%m-%d')],
+                tickformat="%d-%m-%Y", 
+                tickangle=-45, 
+                dtick="M1", 
+                tickfont=dict(size=10), 
+                ticklabelmode="period",
+                ticklabelposition="outside top"),
+            yaxis=dict(
+                title=variable,
+                tickformat=''
+                ),
+            width=900, height=350, 
+            font=dict(size=12),
+            showlegend=False,  # Supprimer la légende
+            hovermode="x unified",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="center",
+                x=0.5,
+                title=None,
+                font=dict(size=16, color="#5e5c5e")))
+
+        # Afficher le graphique
+        st.plotly_chart(fig7, theme=None)
+
+
+    # Obtenez une liste de toutes les colonnes qui contiennent "extra_regressors"
+    regresseurs = [col for col in forecast.columns if "extra_regressors" in col and "_lower" not in col and "_upper" not in col]
+
+    # Ajoutez "holidays" à la liste des régresseurs
+    regresseurs.append('holidays')
+
+    # Définissez une correspondance de couleurs pour chaque régresseur
+    color_mapping = {
+        'holidays': ('#f779ae', '#f6408d'),
+        'extra_regressors_multiplicative': ('#abdfe1', '#84d4d5'),
+        'extra_regressors_additive': ('#abdfe1', '#84d4d5') 
+    }
+
+    # Centrage des graphiques dans la page
+    col1, col2, col3 = st.columns([0.5,8,0.5])
+    with col1:
+        st.write("")
+    with col2:
+        # Pour chaque regresseur
+        for regresseur in regresseurs:
+            fillcolor, linecolor = color_mapping.get(regresseur, ('#f779ae', '#f6408d'))  # couleur par défaut si le régresseur n'est pas dans le mappage
+            plot_regresseur(forecast, regresseur, fillcolor, linecolor)
+    with col3:
+        st.write("")
+
+    st.markdown("""
+    **Le graphique Holidays (Jours fériés)** met en évidence l'impact des jours fériés sur la variable et des périodes "chocs" comme les confinements. 
+    Les jours fériés peuvent souvent entraîner des variations significatives, en fonction de la nature de la variable. 
+    Certains jours fériés, par exemple, peuvent entraîner une augmentation des accidents de la route.
+
+    **Le graphique Extra Regressors (Régresseurs supplémentaires)** présente l'influence des variables externes sur la variable principale. 
+    Ces régresseurs supplémentaires montrent comment ils impactent la prévision de la variable principale.
+
+    Les modèles utilisés sont **additifs**. Dans ces modèles, les effets de la saisonnalité sont simplement ajoutés à la tendance. 
+    Ils sont appropriés lorsque les variations saisonnières restent constantes au fil du temps et ne dépendent pas de la tendance.
+
+    <p style="color: #ad7d67; font-weight:700; font-style:italic; margin: 0px;">
+    Voici comment les prévisions sont calculées pour chaque variable, c'est-à-dire comment les composants sont combinés pour obtenir les prévisions finales.</p>
+    """, unsafe_allow_html=True)
+
+
+    # Sélectionnez les dates dans le DataFrame de prévisions
+    forecast_period = forecast[(forecast['ds'] >= start_date_2022) & 
+                                (forecast['ds'] <= end_date_2022)]
+
+    # Fonction pour calculer les contributions
+    def calculate_contributions(forecast_period):
+        # Liste des composants communs
+        common_components = ['trend', 'holidays', 'weekly', 'yearly', 'extra_regressors_additive']
+        
+        # Calculez les contributions pour les composants communs
+        contributions = {component: round(forecast_period[component].sum()) for component in common_components}
+        
+        # Calculez le total des prévisions
+        total_forecast = round(forecast_period['yhat'].sum())
+        
+        # Ajoutez le total au dictionnaire des contributions
+        contributions['Total prévu'] = total_forecast
+        
+        return contributions
+
+    # Utilisez la fonction pour calculer les contributions pour le modèle 'total_accidents'
+    contributions = calculate_contributions(forecast_period)
+
+    # Créer un graphique en cascade
+    fig8 = go.Figure(go.Waterfall(
+        x=list(contributions.keys()),
+        y=list(contributions.values()),
+        text=[f"<b>{x:.0f}</b>" for x in contributions.values()],
+        measure=["relative"] * (len(contributions) - 1) + ["total"],
+        connector={"line":{"color":"rgb(255, 255, 255)"}},
+        increasing={"marker":{"color":"#042244"}},
+        decreasing={"marker":{"color":"#ed3c64"}},
+        totals={"marker":{"color":"#66cccc"}},
+    ))
+
+    # Mettre à jour la mise en page du graphique
+    fig8.update_layout(
+        title=f"<b>Contribution des composants à la prévision <br> du {start_date_2022.strftime('%d %b %Y')} au {end_date_2022_titre.strftime('%d %b %Y')}</b>",
+        title_font=dict(size=26, color="#ad7d67"),
+        title_xanchor='center',
+        title_x=0.5,
+        yaxis_title="Contribution",
+        xaxis_title="Composants",
+        width=800,
+        height=550,
+    )
+
+    # Centrage du graphique dans la page
+    col1, col2, col3 = st.columns([0.5,8,0.5])
+    with col1:
+        st.write("")
+    with col2:
+        # Pour chaque regresseur
+        st.plotly_chart(fig8, theme=None)
+    with col3:
+        st.write("")
     # Afficher le graphique
-    st.plotly_chart(fig7, theme=None)
 
 
-# Obtenez une liste de toutes les colonnes qui contiennent "extra_regressors"
-regresseurs = [col for col in forecast.columns if "extra_regressors" in col and "_lower" not in col and "_upper" not in col]
-
-# Ajoutez "holidays" à la liste des régresseurs
-regresseurs.append('holidays')
-
-# Définissez une correspondance de couleurs pour chaque régresseur
-color_mapping = {
-    'holidays': ('#f779ae', '#f6408d'),
-    'extra_regressors_multiplicative': ('#abdfe1', '#84d4d5'),
-    'extra_regressors_additive': ('#abdfe1', '#84d4d5') 
-}
-
-# Centrage des graphiques dans la page
-col1, col2, col3 = st.columns([0.5,8,0.5])
-with col1:
-    st.write("")
-with col2:
-    # Pour chaque regresseur
-    for regresseur in regresseurs:
-        fillcolor, linecolor = color_mapping.get(regresseur, ('#f779ae', '#f6408d'))  # couleur par défaut si le régresseur n'est pas dans le mappage
-        plot_regresseur(forecast, regresseur, fillcolor, linecolor)
-with col3:
-    st.write("")
-
-st.markdown("""
-**Le graphique Holidays (Jours fériés)** met en évidence l'impact des jours fériés sur la variable et des périodes "chocs" comme les confinements. 
-Les jours fériés peuvent souvent entraîner des variations significatives, en fonction de la nature de la variable. 
-Certains jours fériés, par exemple, peuvent entraîner une augmentation des accidents de la route.
-
-**Le graphique Extra Regressors (Régresseurs supplémentaires)** présente l'influence des variables externes sur la variable principale. 
-Ces régresseurs supplémentaires montrent comment ils impactent la prévision de la variable principale.
-
-Les modèles utilisés sont **additifs**. Dans ces modèles, les effets de la saisonnalité sont simplement ajoutés à la tendance. 
-Ils sont appropriés lorsque les variations saisonnières restent constantes au fil du temps et ne dépendent pas de la tendance.
-
-<p style="color: #ad7d67; font-weight:700; font-style:italic; margin: 0px;">
-Voici comment les prévisions sont calculées pour chaque variable, c'est-à-dire comment les composants sont combinés pour obtenir les prévisions finales.</p>
-""", unsafe_allow_html=True)
-
-
-# Sélectionnez les dates dans le DataFrame de prévisions
-forecast_period = forecast[(forecast['ds'] >= start_date_2022) & 
-                             (forecast['ds'] <= end_date_2022)]
-
-# Fonction pour calculer les contributions
-def calculate_contributions(forecast_period):
-    # Liste des composants communs
-    common_components = ['trend', 'holidays', 'weekly', 'yearly', 'extra_regressors_additive']
-    
-    # Calculez les contributions pour les composants communs
-    contributions = {component: round(forecast_period[component].sum()) for component in common_components}
-    
-    # Calculez le total des prévisions
-    total_forecast = round(forecast_period['yhat'].sum())
-    
-    # Ajoutez le total au dictionnaire des contributions
-    contributions['Total prévu'] = total_forecast
-    
-    return contributions
-
-# Utilisez la fonction pour calculer les contributions pour le modèle 'total_accidents'
-contributions = calculate_contributions(forecast_period)
-
-# Créer un graphique en cascade
-fig8 = go.Figure(go.Waterfall(
-    x=list(contributions.keys()),
-    y=list(contributions.values()),
-    text=[f"<b>{x:.0f}</b>" for x in contributions.values()],
-    measure=["relative"] * (len(contributions) - 1) + ["total"],
-    connector={"line":{"color":"rgb(255, 255, 255)"}},
-    increasing={"marker":{"color":"#042244"}},
-    decreasing={"marker":{"color":"#ed3c64"}},
-    totals={"marker":{"color":"#66cccc"}},
-))
-
-# Mettre à jour la mise en page du graphique
-fig8.update_layout(
-    title=f"<b>Contribution des composants à la prévision <br> du {start_date_2022.strftime('%d %b %Y')} au {end_date_2022_titre.strftime('%d %b %Y')}</b>",
-    title_font=dict(size=26, color="#ad7d67"),
-    title_xanchor='center',
-    title_x=0.5,
-    yaxis_title="Contribution",
-    xaxis_title="Composants",
-    width=800,
-    height=550,
-)
-
-# Centrage du graphique dans la page
-col1, col2, col3 = st.columns([0.5,8,0.5])
-with col1:
-    st.write("")
-with col2:
-    # Pour chaque regresseur
-    st.plotly_chart(fig8, theme=None)
-with col3:
-    st.write("")
-# Afficher le graphique
-
-
-st.write(f"Le modèle prévoit {contributions['Total prévu']:,d} accidents de la route pour la période sélectionnée.")
-st.write("Il s'agit de la somme des contributions de cinq composants différents :")
-st.write(f"- la tendance : + {contributions['trend']:,d},")
-st.write(f"- les jours fériés : + {contributions['holidays']:,d},")
-st.write(f"- la saisonnalité hebdomadaire : + {contributions['weekly']:,d},")
-st.write(f"- la saisonnalité annuelle : + {contributions['yearly']:,d},")
-st.write(f"- et les régresseurs supplémentaires : + {contributions['extra_regressors_additive']:,d}.")
+    st.write(f"Le modèle prévoit {contributions['Total prévu']:,d} accidents de la route pour la période sélectionnée.")
+    st.write("Il s'agit de la somme des contributions de cinq composants différents :")
+    st.write(f"- la tendance : + {contributions['trend']:,d},")
+    st.write(f"- les jours fériés : + {contributions['holidays']:,d},")
+    st.write(f"- la saisonnalité hebdomadaire : + {contributions['weekly']:,d},")
+    st.write(f"- la saisonnalité annuelle : + {contributions['yearly']:,d},")
+    st.write(f"- et les régresseurs supplémentaires : + {contributions['extra_regressors_additive']:,d}.")
 
 
 # Centrage de l'image du logo dans la sidebar
