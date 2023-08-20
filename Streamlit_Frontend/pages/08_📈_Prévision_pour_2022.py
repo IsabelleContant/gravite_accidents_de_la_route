@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from datetime import datetime, timedelta
+import time
 from PIL import Image
 import plotly.graph_objs as go
 import os
@@ -212,6 +213,8 @@ st.write("")
 # Création des prédictions : Appel FastAPI #
 ############################################
 
+#time.sleep(5)  # Attendez 5 secondes pour que l'application FastAPI démarre
+
 # Divisez l'espace en 3 colonnes avec des largeurs personnalisées
 col1, col2, col3= st.columns([4,4,4])
 with col2:
@@ -225,7 +228,7 @@ if run_prediction:
     encoded_variable = quote(variable)
 
     # Appel à l'API FastAPI
-    response = requests.post(f"http://127.0.0.1:8000/predict/{encoded_variable}/{days}")
+    response = requests.post(f"http://fastapi:8000/predict/{encoded_variable}/{days}")
 
     # Vérifier si la requête a réussi
     if response.status_code == 200:
@@ -643,7 +646,6 @@ if run_prediction:
     st.write(f"- la saisonnalité hebdomadaire : + {contributions['weekly']:,d},")
     st.write(f"- la saisonnalité annuelle : + {contributions['yearly']:,d},")
     st.write(f"- et les régresseurs supplémentaires : + {contributions['extra_regressors_additive']:,d}.")
-
 
 # Centrage de l'image du logo dans la sidebar
 col1, col2, col3 = st.columns([1,1,1])

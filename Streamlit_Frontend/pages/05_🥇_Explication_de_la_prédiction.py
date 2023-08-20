@@ -35,6 +35,7 @@ st.markdown("""
                 margin:0px;}
             p {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
             .css-1offfwp li {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
+            .css-5rimss li {font-family:'Roboto Condensed'; color:Gray; font-size:1.125rem;}
             </style> """, 
             unsafe_allow_html=True)
 

@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  fastapi:
+    build:
+      context: ./FastAPI_Backend
+      dockerfile: Dockerfile
+    image: fastapi_backend:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - mynetwork
+    volumes:
+      - ./FastAPI_Backend/data:/app/data
+      - ./FastAPI_Backend/models:/app/models
+
+  streamlit:
+    build:
+      context: ./Streamlit_Frontend
+      dockerfile: Dockerfile
+    image: streamlit_frontend:latest
+    ports:
+      - "8501:8501"
+    networks:
+      - mynetwork
+    depends_on:
+      - fastapi
+    volumes:
+      - ./Streamlit_Frontend/data:/app/data
+      - ./Streamlit_Frontend/models:/app/models
+
+networks:
+  mynetwork:
