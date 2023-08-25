@@ -46,3 +46,7 @@ jobs:
             git reset --hard
             git pull
             git lfs pull
+            docker-compose down
+            docker image rm streamlit_frontend  
+            docker image rm fastapi_backend
+            docker-compose up
